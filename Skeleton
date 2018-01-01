@@ -1,0 +1,81 @@
+Process monitor Daemon
+------------------------
+
+Daemon Name   ->   Processd
+Started from rc script
+Reads a config file in /etc/{somewhere}
+Sample Config File
+-------------------
+	[Short Name]
+	name={process name}
+	location={process Path}/SHELL(Future Implementation)
+    argc={Number of Arguments}/MaxArgs 20
+    argv={command line arguments}
+	priority={priority No:<1 - 10>}
+    loglocation`
+
+Client Functionalities
+-----------------------
+1)Register
+2)UnRegister
+3)ReRead config
+4)Status
+5)Running Apps
+6)Help
+        Command Register
+        ------------------
+        Read the PID from proc
+        Add to the config File
+        Create a new thread
+
+        Command UnRegister
+        ------------------
+        Delete Data from config file
+        Stop the thread
+        Delete the thread variable
+
+        Command ReRead
+        ------------------
+        Read the config file again
+
+        Command Status
+        ------------------
+        Displays the Status of application Specified,  Including no of Restarts, Run Time.
+
+        Command List
+        ------------------
+        Lists the running applications
+        
+        Command Help
+        ------------------
+        Displays the commands help
+        
+Prototype Daemon
+----------------
+Start
+-----
+    1)Read the config File
+    2)Populate data
+    3)Start all the threads with pid
+    4)Wait for Commands
+
+Thread Structure
+----------------
+    while (Registered)
+    {
+        if is Alive pid
+            sleep according to priority
+        else
+            start the process
+            update the pid
+    }
+
+
+
+
+Future Implementations
+------------------------
+
+Use shell PATH variable for searching executable
+Running/Restarting processess in the uid/gid/priority in which it was started
+Checking if multiple entries are there with same ID or same app Name
