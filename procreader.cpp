@@ -21,7 +21,7 @@ bool CheckAppName(string & name, const string searchApp)
     if (stat(filename.c_str(), &filetype) == 0)
     {
         ifile.open(filename.c_str());
-        if (ifile != NULL)
+        if (ifile.good())
         {
             string appName;
             getline(ifile, appName);
