@@ -37,6 +37,7 @@ bool CheckAppName(string & name, const string searchApp)
             cout << "Failed to open the file" << filename << endl; 
         }
     }
+    return false;
 }
 
 bool ParseProc(string searchApp, string & pid)
@@ -67,7 +68,7 @@ bool ParseProc(string searchApp, string & pid)
             {
                 if ( CheckAppName(filename, searchApp ))
                 {
-                    cout << "The pid of " << searchApp << "is  " << pDirCont->d_name << endl;
+                    cout << "The pid of " << searchApp << " is  " << pDirCont->d_name << endl;
                     found = true;
                     pid.assign(pDirCont->d_name);
                     break;

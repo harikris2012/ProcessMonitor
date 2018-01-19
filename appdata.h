@@ -19,20 +19,24 @@ class AppsData
     unsigned int m_noOfArgs;
     unsigned int m_RealNoOfArgs;
     unsigned int m_priority;
+    unsigned int m_noOfCrashes;
     int m_pid;
     bool m_isRegistered;
+    bool m_isRunning;
     int m_exitStatus;
     int m_execErrorCode;
     char * m_argsForExec[MAX_ARGS];
     std::thread m_processMonitorThread;
     std::mutex m_threadMutex;
+    std::condition_variable_any m_condition;
 
     public:
     AppsData()
     {
         m_appLocation.assign("/bin");
+        m_logLocation.assign("/etc/processd");
         m_noOfArgs = 0;
-        m_inputArgs.assign("__NOARGS");
+        m_inputArgs.assign("NOARGS");
         m_priority = 10;
         m_isRegistered = true;
         m_execErrorCode = -1;
@@ -41,16 +45,46 @@ class AppsData
         {
             m_argsForExec[i] = NULL;
         }
+        m_isRegistered = true;
+        m_isRunning = true;
+        m_RealNoOfArgs = 0;
+    }
+    AppsData(const AppsData& newData)
+    {
+        m_appID.assign(newData.m_appID);
+        m_appName.assign(newData.m_appName);
+        m_appLocation.assign(newData.m_appLocation);
+        m_logLocation.assign(newData.m_logLocation);
+        m_noOfArgs = newData.m_noOfArgs;
+        m_inputArgs.assign(newData.m_inputArgs);
+        m_priority = newData.m_priority;
+        m_isRunning = newData.m_isRunning;
+        m_isRegistered = newData.m_isRegistered;
+        for (int i = 0; i <  MAX_ARGS; i++)
+        {
+            m_argsForExec[i] = NULL;
+        }
+        m_isRunning = newData.m_isRunning;
+        m_pid = newData.m_pid;
+        m_RealNoOfArgs = newData.m_RealNoOfArgs;
     }
     ~AppsData()
     {
-        for (int i = 1; i <= m_RealNoOfArgs ; i++)
+        //StopThread();
+        if (false == m_isRegistered)
         {
-            free(m_argsForExec[i]);
+            m_processMonitorThread.join();
         }
-        m_processMonitorThread.join();
+        for (int i = 0; i <= m_RealNoOfArgs ; i++)
+        {
+            if (NULL != m_argsForExec[i])
+            {
+                free(m_argsForExec[i]);
+            }
+        }
     }
 
+    
     bool StartThread()
     {
         m_processMonitorThread = std::thread(&ProcessMonitorThread, this);
@@ -58,9 +92,13 @@ class AppsData
 
     void StopThread()
     {
-        m_threadMutex.lock();
         m_isRegistered = false;
-        m_threadMutex.unlock();
+        //m_isRunning = false;
+    }
+    
+    bool IsStopped()
+    {
+        return !m_isRegistered;
     }
 
     bool ProcessInputArgs()
@@ -81,7 +119,7 @@ class AppsData
         }
         int searchPos = 0, searchPosBeg = 0;
         int currentArg = 1;
-        if (0 == m_inputArgs.compare("__NOARGS"))
+        if (0 == m_inputArgs.compare("NOARGS"))
         {
             log_info("No arguments so no need of processing");
             return true;
@@ -179,6 +217,7 @@ class AppsData
     }
    void ShowClassValues()
     {
+        std::cout << "-------------------------------------" << std::endl;
         std::cout << "Id: " << m_appID << std::endl;
         std::cout << "Name: " << m_appName << std::endl;
         std::cout << "Location: " << m_appLocation << std::endl;
@@ -189,7 +228,11 @@ class AppsData
         std::cout << "Splitted Args are " << std::endl;
         for (int i = 0; i <= m_noOfArgs; i++)
         {
-            std::cout << m_argsForExec[i] << "<>" << std::endl;
+            if (NULL != m_argsForExec[i])
+            {
+                std::cout << m_argsForExec[i] << "<>" << std::endl;
+            }
         }
+        std::cout << "-------------------------------------" << std::endl;
     }
 };
